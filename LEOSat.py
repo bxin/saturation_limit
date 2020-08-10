@@ -32,9 +32,9 @@ def getSatSII(f, d, e, l1, l2, h, zangle, seeing, pixel_size, plate_scale):
     [x, y] = np.meshgrid(x0,x0)
     r = np.sqrt(x**2+y**2)
     z = np.zeros((side*2+1, side*2+1))
-    mask = np.bitwise_and((r<donutR), (r>donutR*e))
+    mask = np.bitwise_and((r<=donutR), (r>=donutR*e))
     z[mask] = 1 #image of a point object
-    
+
     s = np.ones((s1, s2))
     f = convolve2d(z,s) #sat is a extended source
     
@@ -70,7 +70,8 @@ def getSatSIIvonK(f, d, e, l1, l2, h, zangle, seeing, pixel_size, plate_scale):
         sii : satellite instantaneous image, pixel size is 3.5 micron (=0.07 arcsec = 0.35 LSST pixel)
         fwhm_exp: expected FWHM using FWHM = $\sqrt{\frac{D_{sat}^2}{d^2} + \frac{D_{pupil}^2}{d^2} + \theta_{atm}^2}$, 
     '''
-    zAtm = np.loadtxt('vonK1.0.txt') #this was generated for 1.0" FWHM, pixel size=0.1". We squeeze it 0.7" FWHM, pixel size=0.07".
+    #zAtm = np.loadtxt('vonK1.0.txt') #this was generated for 1.0" FWHM, pixel size=0.1". We squeeze it 0.7" FWHM, pixel size=0.07".
+    zAtm = np.loadtxt('vonK1.0_2k.txt') #this was generated for 1.0" FWHM, pixel size=0.1". We squeeze it 0.7" FWHM, pixel size=0.07".
     
     fno = f/d
     cosz = np.cos(np.radians(zangle))
@@ -87,7 +88,7 @@ def getSatSIIvonK(f, d, e, l1, l2, h, zangle, seeing, pixel_size, plate_scale):
     [x, y] = np.meshgrid(x0,x0)
     r = np.sqrt(x**2+y**2)
     z = np.zeros((side*2+1, side*2+1))
-    mask = np.bitwise_and((r<donutR), (r>donutR*e))
+    mask = np.bitwise_and((r<=donutR), (r>=donutR*e))
     z[mask] = 1 #image of a point object
     
     s = np.ones((s1, s2))
