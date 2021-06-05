@@ -10,7 +10,7 @@ def getSatSII(f, d, e, l1, l2, h, zangle, seeing, pixel_size, plate_scale):
         l1, l2 = apparent size of satellite in meters
         h = satellite height in meters
         zangle = zenith angle that the satellite is observed in degrees
-        seeing = seeing (delivered PSF size in arcsec)
+        seeing = seeing (delivered PSF size in arcsec) at the given zangle
         pixel_size = pixel size in micron
         plate_scale = plate scale in arcsec per pixel
     output parameter:
@@ -63,22 +63,24 @@ def getSatSIIvonK(f, d, e, l1, l2, h, zangle, seeing, pixel_size, plate_scale):
         l1, l2 = apparent size of satellite in meters
         h = satellite height in meters
         zangle = zenith angle that the satellite is observed in degrees
-        seeing = seeing (delivered PSF size in arcsec)
+        seeing = seeing (delivered PSF size in arcsec) at the given zangle
         pixel_size = pixel size in micron
         plate_scale = plate scale in arcsec per pixel
     output parameter:
-        sii : satellite instantaneous image, pixel size is 3.5 micron (=0.07 arcsec = 0.35 LSST pixel)
+        sii : satellite instantaneous image, 
+        array_pixel_size: pixel size for sii, in microns. For LSST, this is 3.5 micron (=0.07 arcsec = 0.35 LSST pixel)
         fwhm_exp: expected FWHM using FWHM = $\sqrt{\frac{D_{sat}^2}{d^2} + \frac{D_{pupil}^2}{d^2} + \theta_{atm}^2}$, 
     '''
     #zAtm = np.loadtxt('vonK1.0.txt') #this was generated for 1.0" FWHM, pixel size=0.1". We squeeze it 0.7" FWHM, pixel size=0.07".
     zAtm = np.loadtxt('vonK1.0_2k.txt') #this was generated for 1.0" FWHM, pixel size=0.1". We squeeze it 0.7" FWHM, pixel size=0.07".
+    array_pixel_size = 0.1*seeing/plate_scale*pixel_size #0.1" per pixel was for the vonK file loaded above
     
     fno = f/d
     cosz = np.cos(np.radians(zangle))
     range = h/cosz
-    donutR=round((1/(1/f-1/range)-f)*1e6/fno/2/3.5) #in 3.5 micron pixel
-    s1 = int(l1/range/np.pi*180*3600/plate_scale*pixel_size/3.5)
-    s2 = int(l2/range/np.pi*180*3600/plate_scale*pixel_size/3.5)
+    donutR=round((1/(1/f-1/range)-f)*1e6/fno/2/array_pixel_size) #in 3.5 micron pixel
+    s1 = int(l1/range/np.pi*180*3600/plate_scale*pixel_size/array_pixel_size)
+    s2 = int(l2/range/np.pi*180*3600/plate_scale*pixel_size/array_pixel_size)
     #print('donutR = %d pixel (1pix = 0.07arcsec), satellite conv kernel = %d x %d microns'%(donutR, s1, s2))
     
     padding = np.round((zAtm.shape[0] - s1 - donutR*2)/2) #480 #pixels
@@ -109,7 +111,7 @@ def getSatSIIvonK(f, d, e, l1, l2, h, zangle, seeing, pixel_size, plate_scale):
     f3 = seeing**2
     fwhm_exp = np.sqrt(f1+f2+f3)/plate_scale*pixel_size
     #print('expected FWHM = %d microns'%(fwhm_exp))#this is still in micron
-    return sii, fwhm_exp
+    return sii, fwhm_exp, array_pixel_size
 
 def findWidth(cs, y):
     '''
